@@ -35,58 +35,64 @@ Determine the skill installation directory based on the current AI platform:
 ### Step 2: Download & Install
 
 ```bash
-# Clone to a temp directory
 git clone https://github.com/zzturn/cf-pages-publisher.git /tmp/cf-pages-publisher-install
-
-# Copy to skill directory (adjust path for your platform)
 cp -r /tmp/cf-pages-publisher-install ~/.claude/skills/cf-pages-publisher
-
-# Clean up
 rm -rf /tmp/cf-pages-publisher-install
 ```
 
 ### Step 3: Verify Installation
 
-Confirm the skill is correctly installed:
-
 ```bash
 ls ~/.claude/skills/cf-pages-publisher/SKILL.md
-# Should output the path — if it exists, installation succeeded
 ```
 
-### Step 4: First-Time Setup
+### Step 4: Collect Configuration from User
 
-Run the interactive setup script. This requires user interaction (choosing auth method, entering credentials):
+Before running setup, ask the user for these values through natural conversation:
+
+1. **Project name** — lowercase alphanumeric with hyphens, determines `https://<name>.pages.dev`
+2. **Authentication method:**
+   - **API Token + Account ID** (recommended) — ask for both values
+   - **API Token only** — only ask for the token (needs broad permissions)
+   - **Browser login** — no credentials needed (user must be at a desktop)
+
+> **Important:** If the user's API Token only has "Pages:Edit" permission, they MUST provide the Account ID. Without it, all commands will fail.
+
+### Step 5: Run Setup (non-interactive)
+
+Pass all collected values as CLI arguments — no stdin interaction needed:
 
 ```bash
-node ~/.claude/skills/cf-pages-publisher/setup.mjs
+# With API Token + Account ID (recommended)
+node ~/.claude/skills/cf-pages-publisher/setup.mjs \
+  --project <name> \
+  --auth token \
+  --token <api-token> \
+  --account-id <account-id>
+
+# With API Token only (needs broad permissions)
+node ~/.claude/skills/cf-pages-publisher/setup.mjs \
+  --project <name> \
+  --auth token-only \
+  --token <api-token>
+
+# Optional: custom workspace path
+node ~/.claude/skills/cf-pages-publisher/setup.mjs \
+  --project <name> \
+  --auth token \
+  --token <api-token> \
+  --account-id <account-id> \
+  --workspace /path/to/workspace
 ```
 
-The setup script will guide the user through:
+The script exits with code 0 on success, non-zero on failure. Check stdout for the result.
 
-1. **Workspace path** — where to store published pages (default `~/.cf-pages-publisher/`)
-2. **Project name** — determines the public URL (`https://<name>.pages.dev`)
-3. **Authentication** — three options:
+### Step 6: Confirm to User
 
-| # | Method | When to use | Account ID |
-|---|--------|-------------|------------|
-| 1 | Browser login | Personal desktop | Auto-detected |
-| 2 | API Token + Account ID | CI/sandbox, scoped tokens | User must provide |
-| 3 | API Token only | Broad permissions | Auto-detected via whoami |
+After successful setup, tell the user:
 
-> **Note for agents:** If the user provides an API Token, ask whether they also have an Account ID. Scoped tokens (Pages:Edit only) **require** the Account ID — without it, all wrangler commands will fail.
-
-4. **Project creation** — automatically creates the CF Pages project
-5. **Welcome page** — deploys a Chinese-language confirmation page
-
-After setup, `config.json` and `.env` are saved in the **workspace directory** (not the skill directory).
-
-### Step 5: Confirm to User
-
-After installation and setup, tell the user:
-
-> Skill installed and configured! You can now ask me to publish pages.
-> Example: "将以下内容发布为页面：# 我的文档 ..."
+> Skill installed and configured! Project URL: `https://<name>.pages.dev`
+> You can now ask me to publish pages. Example: "将以下内容发布为页面：# 我的文档 ..."
 
 ---
 
@@ -102,21 +108,16 @@ After installation, the user can publish content with natural language:
 
 ### Publishing Workflow (for AI Agents)
 
-When the user asks to publish content, follow these steps:
-
 ```bash
 # 1. Read config from workspace
 cat ~/.cf-pages-publisher/config.json
 
 # 2. Save user content to a .md file in the workspace
-# (create the file with the user's content)
 
-# 3. Convert Markdown to HTML with content hash
+# 3. Convert + deploy
 cd ~/.cf-pages-publisher
 set -a && [ -f .env ] && source .env && set +a
 npm run publish-doc -- <filename.md> --base <baseUrl>
-
-# 4. Deploy to Cloudflare Pages
 npx wrangler pages deploy public --project-name=<projectName> --commit-dirty=true
 ```
 
@@ -145,20 +146,15 @@ public/<hash>/index.html
 https://<project>.pages.dev/<hash>/
 ```
 
-- The AI agent calls `publish-doc` to convert Markdown to styled HTML
-- SHA-256 content hash serves as the URL path (same content = same URL)
-- Wrangler uploads the entire `public/` directory to Cloudflare
-- Old pages are never deleted — existing links remain valid permanently
-
 ## Project Structure
 
 ```
 cf-pages-publisher/
 ├── SKILL.md                       # Skill manifest (read by AI agent)
-├── setup.mjs                      # Setup script (called by AI agent)
+├── setup.mjs                      # Setup script (supports CLI args)
 ├── agents/openai.yaml             # Codex agent config
-├── references/troubleshooting.md  # Troubleshooting guide (for AI agent)
-└── templates/                     # Workspace template (copied during setup)
+├── references/troubleshooting.md  # Troubleshooting guide
+└── templates/                     # Workspace template
     ├── package.json
     ├── .gitignore
     ├── scripts/publish-doc.mjs    # Core publish script
@@ -167,13 +163,13 @@ cf-pages-publisher/
 
 ## Safety Rules
 
-- **DO NOT modify `public/index.html`** — it is the auto-generated welcome page, not part of the publish flow
+- **DO NOT modify `public/index.html`** — it is the auto-generated welcome page
 - **DO NOT delete old `public/<hash>/` directories** — old links must stay alive
-- **HTML is escaped by default** — only use `--allow-html` when the user explicitly requests it
+- **HTML is escaped by default** — only use `--allow-html` when explicitly requested
 
 ## Troubleshooting
 
-See [`references/troubleshooting.md`](references/troubleshooting.md) for detailed debugging steps. The AI agent should consult this file when encountering errors.
+See [`references/troubleshooting.md`](references/troubleshooting.md) for detailed debugging steps.
 
 ## License
 
