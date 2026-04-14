@@ -4,8 +4,8 @@ description: >
   Publish Markdown/HTML as a styled static page and deploy to Cloudflare Pages via
   Wrangler Direct Upload, producing a content-hash permalink. Use when a user wants
   a public URL for a chat-generated document, wants one-link-per-output (hash URL),
-  or wants CLI deploy without Git integration. First-time setup is fully interactive
-  and guided — no manual configuration required.
+  or wants CLI deploy without Git integration. Supports both interactive (human)
+  and non-interactive (AI agent) setup modes.
 ---
 
 # CF Pages Publisher
@@ -18,7 +18,31 @@ description: >
 
 ## First-Time Setup
 
-If `config.json` does **not** exist in the workspace, run the interactive setup:
+### Non-Interactive Mode (for AI Agents)
+
+When running as an AI agent, use CLI arguments instead of interactive prompts:
+
+```bash
+# Method 1: Token + Account ID (recommended for scoped tokens)
+node <skill-dir>/setup.mjs --project <name> --auth token --token <CLOUDFLARE_API_TOKEN> --account-id <CLOUDFLARE_ACCOUNT_ID>
+
+# Method 2: Token only (token must have Account Settings:Read permission)
+node <skill-dir>/setup.mjs --project <name> --auth token-only --token <CLOUDFLARE_API_TOKEN>
+
+# Optional: specify custom workspace
+node <skill-dir>/setup.mjs --project <name> --workspace <path> --auth token --token <TOKEN> --account-id <ID>
+```
+
+**Before running setup, collect from the user:**
+1. Cloudflare Pages project name (lowercase, hyphens allowed, min 3 chars)
+2. Cloudflare API Token (from https://dash.cloudflare.com/profile/api-tokens)
+3. Cloudflare Account ID (if using scoped tokens without Account Settings:Read)
+
+The script will create workspace, install deps, authenticate, create the CF Pages project, and deploy a welcome page — all in one run.
+
+### Interactive Mode (for Humans)
+
+Run without arguments for guided setup:
 
 ```bash
 node <skill-dir>/setup.mjs
@@ -35,15 +59,13 @@ The script will:
 
 ### Authentication
 
-The setup script offers three authentication methods:
+| Method | CLI flag | When to use | Account ID |
+|--------|----------|-------------|------------|
+| **Token + Account ID** | `--auth token` | Scoped tokens, CI/CD, AI agents | **Required** via `--account-id` |
+| **Token only** | `--auth token-only` | Token has broad permissions | Auto-detected via `wrangler whoami` |
+| **Browser login** | _(interactive only)_ | Personal desktop, has browser access | Auto-detected |
 
-| Method | When to use | Account ID |
-|--------|-------------|------------|
-| **1) Browser login** | Personal desktop, has browser access | Auto-detected |
-| **2) Token + Account ID** | CI/sandbox, scoped tokens (Pages:Edit only) | **Required** — paste manually |
-| **3) Token only** | Token has broad permissions (Account Settings:Read) | Auto-detected via whoami |
-
-**Important:** If your API token only has "Cloudflare Pages:Edit" permission (no Account Settings:Read), you MUST use method 2 and provide the Account ID. Without it, wrangler cannot determine which account to use and all commands will fail.
+**Important:** If your API token only has "Cloudflare Pages:Edit" permission (no Account Settings:Read), you MUST provide the Account ID. Without it, wrangler cannot determine which account to use and all commands will fail.
 
 Find your Account ID: Cloudflare Dashboard → select your domain → right sidebar.
 
@@ -63,7 +85,7 @@ Saved automatically by `setup.mjs` inside the workspace directory. Edit manually
 }
 ```
 
-To reconfigure: delete the workspace's `config.json` and re-run `setup.mjs`.
+To reconfigure: delete the workspace's `config.json` and re-run `setup.mjs` (interactive) or run with `--project` flag (non-interactive).
 
 ## Publishing Workflow
 
