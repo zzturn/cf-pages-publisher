@@ -11,27 +11,88 @@
 - **增量部署** — 旧哈希目录保留，已有链接永不失效
 - **双平台支持** — Claude Code (`~/.claude/skills/`) 和 OpenAI Codex (`~/.codex/skills/`)
 
-## 安装
+---
 
-将整个目录复制到对应平台的 skills 目录下即可：
+## Installation (for AI Agents)
 
+> This section is written for AI agents (Claude Code, Codex, etc.) to follow when a user asks to install this skill.
+
+### Prerequisites
+
+- Node.js >= 18
+- A Cloudflare account (free tier works)
+- Either a Cloudflare API Token (recommended) or a browser for `wrangler login`
+
+### Step 1: Detect Platform
+
+Determine the skill installation directory based on the current AI platform:
+
+| Platform | Skill Directory |
+|----------|----------------|
+| Claude Code | `~/.claude/skills/` |
+| OpenAI Codex | `~/.codex/skills/` |
+
+### Step 2: Download & Install
+
+```bash
+# Clone to a temp directory
+git clone https://github.com/zzturn/cf-pages-publisher.git /tmp/cf-pages-publisher-install
+
+# Copy to skill directory (adjust path for your platform)
+cp -r /tmp/cf-pages-publisher-install ~/.claude/skills/cf-pages-publisher
+
+# Clean up
+rm -rf /tmp/cf-pages-publisher-install
 ```
-# Claude Code
-cp -r cf-pages-publisher ~/.claude/skills/
 
-# OpenAI Codex
-cp -r cf-pages-publisher ~/.codex/skills/
+### Step 3: Verify Installation
+
+Confirm the skill is correctly installed:
+
+```bash
+ls ~/.claude/skills/cf-pages-publisher/SKILL.md
+# Should output the path — if it exists, installation succeeded
 ```
 
-安装完成后，AI 助手会在首次使用时自动引导你完成 Cloudflare Pages 的配置，包括：
-- 选择工作区路径
-- 输入项目名（决定 `https://<name>.pages.dev`）
-- 选择认证方式并验证
-- 创建项目并部署欢迎页
+### Step 4: First-Time Setup
 
-## 使用
+Run the interactive setup script. This requires user interaction (choosing auth method, entering credentials):
 
-安装后直接向 AI 助手发送指令，一切由 AI 自动完成：
+```bash
+node ~/.claude/skills/cf-pages-publisher/setup.mjs
+```
+
+The setup script will guide the user through:
+
+1. **Workspace path** — where to store published pages (default `~/.cf-pages-publisher/`)
+2. **Project name** — determines the public URL (`https://<name>.pages.dev`)
+3. **Authentication** — three options:
+
+| # | Method | When to use | Account ID |
+|---|--------|-------------|------------|
+| 1 | Browser login | Personal desktop | Auto-detected |
+| 2 | API Token + Account ID | CI/sandbox, scoped tokens | User must provide |
+| 3 | API Token only | Broad permissions | Auto-detected via whoami |
+
+> **Note for agents:** If the user provides an API Token, ask whether they also have an Account ID. Scoped tokens (Pages:Edit only) **require** the Account ID — without it, all wrangler commands will fail.
+
+4. **Project creation** — automatically creates the CF Pages project
+5. **Welcome page** — deploys a Chinese-language confirmation page
+
+After setup, `config.json` and `.env` are saved in the **workspace directory** (not the skill directory).
+
+### Step 5: Confirm to User
+
+After installation and setup, tell the user:
+
+> Skill installed and configured! You can now ask me to publish pages.
+> Example: "将以下内容发布为页面：# 我的文档 ..."
+
+---
+
+## Usage
+
+After installation, the user can publish content with natural language:
 
 ```
 "将以下内容发布为页面：# 我的标题 ..."
@@ -39,67 +100,80 @@ cp -r cf-pages-publisher ~/.codex/skills/
 "把这个 Markdown 文件发布为网页"
 ```
 
-AI 助手会自动：读取配置 → 生成 HTML → 计算哈希 → 部署 → 返回永久链接。
+### Publishing Workflow (for AI Agents)
 
-### 认证方式
+When the user asks to publish content, follow these steps:
 
-首次使用时，AI 助手会让你选择认证方式：
+```bash
+# 1. Read config from workspace
+cat ~/.cf-pages-publisher/config.json
 
-| 方式 | 适用场景 | Account ID |
-|------|---------|------------|
-| 浏览器登录 | 个人桌面 | 自动检测 |
-| API Token + Account ID | CI/sandbox、权限受限的 token | 需手动提供 |
-| API Token only | token 具有广泛权限 | 自动检测 |
+# 2. Save user content to a .md file in the workspace
+# (create the file with the user's content)
 
-> **重要：** 如果 API Token 仅有 "Pages:Edit" 权限，需选择方式 2 并提供 Account ID。
+# 3. Convert Markdown to HTML with content hash
+cd ~/.cf-pages-publisher
+set -a && [ -f .env ] && source .env && set +a
+npm run publish-doc -- <filename.md> --base <baseUrl>
 
-## 工作原理
+# 4. Deploy to Cloudflare Pages
+npx wrangler pages deploy public --project-name=<projectName> --commit-dirty=true
+```
+
+Reply with the final URL: `<baseUrl>/<hash>/`
+
+### publish-doc Options
+
+| Flag | Description |
+|------|-------------|
+| `--base <url>` | Base URL for the permalink (required) |
+| `--len <N>` | Hash length (default 12, range 8–64) |
+| `--with-time` | Include timestamp in hash (changes on each run) |
+| `--allow-html` | Allow raw HTML in Markdown (disabled by default) |
+
+---
+
+## How It Works
 
 ```
-用户指令："发布这个内容"
-    ↓ AI 助手自动执行
-Markdown → HTML 转换 + SHA-256 内容哈希
+User: "发布这个内容"
+    ↓ AI agent executes automatically
+Markdown → HTML conversion + SHA-256 content hash
     ↓
 public/<hash>/index.html
     ↓ Wrangler Direct Upload
 https://<project>.pages.dev/<hash>/
 ```
 
-- AI 调用 `publish-doc` 将 Markdown 转为带样式的 HTML
-- 通过 SHA-256 计算内容哈希作为 URL 路径（相同内容 = 相同 URL）
-- 通过 Wrangler 上传整个 `public/` 目录到 Cloudflare
-- 旧页面不会被删除，已有链接永久有效
+- The AI agent calls `publish-doc` to convert Markdown to styled HTML
+- SHA-256 content hash serves as the URL path (same content = same URL)
+- Wrangler uploads the entire `public/` directory to Cloudflare
+- Old pages are never deleted — existing links remain valid permanently
 
-## 项目结构
+## Project Structure
 
 ```
 cf-pages-publisher/
-├── SKILL.md                       # Skill 主文档（AI agent 读取）
-├── setup.mjs                      # 配置脚本（AI 自动调用）
-├── agents/openai.yaml             # Codex agent 配置
-├── references/troubleshooting.md  # 故障排查（AI 参考）
-└── templates/                     # 工作区模板
+├── SKILL.md                       # Skill manifest (read by AI agent)
+├── setup.mjs                      # Setup script (called by AI agent)
+├── agents/openai.yaml             # Codex agent config
+├── references/troubleshooting.md  # Troubleshooting guide (for AI agent)
+└── templates/                     # Workspace template (copied during setup)
     ├── package.json
     ├── .gitignore
-    ├── scripts/publish-doc.mjs    # 核心发布脚本
-    └── public/index.html          # 占位首页
+    ├── scripts/publish-doc.mjs    # Core publish script
+    └── public/index.html          # Placeholder homepage
 ```
 
-## publish-doc 选项
+## Safety Rules
 
-AI 助手可根据需求使用以下参数：
+- **DO NOT modify `public/index.html`** — it is the auto-generated welcome page, not part of the publish flow
+- **DO NOT delete old `public/<hash>/` directories** — old links must stay alive
+- **HTML is escaped by default** — only use `--allow-html` when the user explicitly requests it
 
-| 参数 | 说明 |
-|------|------|
-| `--base <url>` | Base URL（用于生成永久链接） |
-| `--len <N>` | 哈希长度（默认 12，范围 8-64） |
-| `--with-time` | 在哈希中包含时间戳（每次运行不同） |
-| `--allow-html` | 允许 Markdown 中的原始 HTML（默认禁用） |
+## Troubleshooting
 
-## Requirements
-
-- Node.js >= 18
-- Cloudflare 账户（免费版即可）
+See [`references/troubleshooting.md`](references/troubleshooting.md) for detailed debugging steps. The AI agent should consult this file when encountering errors.
 
 ## License
 
