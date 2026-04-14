@@ -1,15 +1,14 @@
 #!/usr/bin/env node
 // @ts-check
 /**
- * cf-pages-publisher — Setup script (dual mode).
+ * cf-pages-publisher — Setup script.
  *
- * Non-interactive (for AI agents):
+ * Usage (non-interactive, required for AI agents):
  *   node setup.mjs --project <name> [--workspace <path>] --auth token --token <str> --account-id <str>
  *   node setup.mjs --project <name> [--workspace <path>] --auth token-only --token <str>
  *   node setup.mjs --project <name> [--workspace <path>] --auth env
  *
- * Interactive (for humans):
- *   node setup.mjs
+ * AI agents: always use one of the above commands. Never run without arguments.
  */
 
 import { createInterface } from "node:readline/promises";
