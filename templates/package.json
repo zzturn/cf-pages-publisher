@@ -1,0 +1,12 @@
+{
+  "name": "cf-pages-workspace",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "publish-doc": "node ./scripts/publish-doc.mjs"
+  },
+  "dependencies": {
+    "marked": "^12.0.2",
+    "wrangler": "^4.0.0"
+  }
+}

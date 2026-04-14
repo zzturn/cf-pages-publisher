@@ -1,0 +1,8 @@
+.home/
+.npm-cache/
+.env
+node_modules/
+.wrangler/
+public/*/
+!public/index.html
+!public/assets/

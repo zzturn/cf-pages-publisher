@@ -1,0 +1,4 @@
+interface:
+  display_name: "CF Pages Publisher"
+  short_description: "Publish docs to Cloudflare Pages (hash URL)"
+  default_prompt: "Publish the user's Markdown/HTML as a styled page to Cloudflare Pages via wrangler direct upload, and return the final public URL."
