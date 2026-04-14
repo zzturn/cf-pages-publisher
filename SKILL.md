@@ -23,20 +23,35 @@ If `<workspace>/config.json` does not exist, run setup before publishing.
 
 Ask the user through conversation:
 - **Project name** — lowercase alphanumeric + hyphens, min 3 chars, determines `https://<name>.pages.dev`
+
+Then choose ONE authentication method:
+
+**Method A: User provides .env file (preferred)**
+Ask user to create `<workspace>/.env` with their credentials:
+```
+CLOUDFLARE_API_TOKEN=<token>
+CLOUDFLARE_ACCOUNT_ID=<account-id>
+```
+Account ID is optional — will auto-detect if token has Account Settings:Read permission.
+
+**Method B: User provides credentials in conversation**
 - **Cloudflare API Token** — from https://dash.cloudflare.com/profile/api-tokens (needs "Cloudflare Pages:Edit")
 - **Cloudflare Account ID** — required if token lacks "Account Settings:Read" permission. Find at: Cloudflare Dashboard → select domain → right sidebar.
 
 ### 2. Run setup script
 
 ```bash
-# With token + account ID (recommended)
+# Method A: read credentials from .env file (preferred)
+node <skill-dir>/setup.mjs --project <name> --auth env
+
+# Method B-1: with token + account ID
 node <skill-dir>/setup.mjs --project <name> --auth token --token <TOKEN> --account-id <ID>
 
-# With token only (needs Account Settings:Read permission)
+# Method B-2: with token only (needs Account Settings:Read permission)
 node <skill-dir>/setup.mjs --project <name> --auth token-only --token <TOKEN>
 
-# Optional: custom workspace path
-node <skill-dir>/setup.mjs --project <name> --workspace <path> --auth token --token <TOKEN> --account-id <ID>
+# Optional: custom workspace path (any method)
+node <skill-dir>/setup.mjs --project <name> --workspace <path> --auth env
 ```
 
 Default workspace: `~/.cf-pages-publisher/`

@@ -6,6 +6,7 @@
  * Non-interactive (for AI agents):
  *   node setup.mjs --project <name> [--workspace <path>] --auth token --token <str> --account-id <str>
  *   node setup.mjs --project <name> [--workspace <path>] --auth token-only --token <str>
+ *   node setup.mjs --project <name> [--workspace <path>] --auth env
  *
  * Interactive (for humans):
  *   node setup.mjs
@@ -88,7 +89,7 @@ function parseCliArgs(argv) {
   const args = {
     workspace: DEFAULT_WORKSPACE,
     project: null,
-    auth: null,       // "token" | "token-only"
+    auth: null,       // "token" | "token-only" | "env"
     token: null,
     accountId: null,
   };
@@ -108,11 +109,12 @@ Usage:
   Non-interactive (for AI agents):
     node setup.mjs --project <name> --auth token --token <str> --account-id <str>
     node setup.mjs --project <name> --auth token-only --token <str>
+    node setup.mjs --project <name> --auth env
 
 Options:
   --workspace <path>       Workspace directory (default: ~/.cf-pages-publisher)
   --project <name>         Cloudflare Pages project name
-  --auth <method>          token (= token + account-id) | token-only
+  --auth <method>          token (= token + account-id) | token-only | env (read from .env)
   --token <string>         Cloudflare API Token
   --account-id <string>    Cloudflare Account ID (required when --auth=token)
   -h, --help               Show this help
@@ -128,6 +130,7 @@ function isNonInteractive(args) {
   if (!args.project) return false;
   if (args.auth === "token") return !!(args.token && args.accountId);
   if (args.auth === "token-only") return !!args.token;
+  if (args.auth === "env") return true;
   return false;
 }
 
@@ -276,7 +279,41 @@ function doSetup({ projectName, workspacePath, authMethod, token, accountId }) {
 
   // 3. Authenticate
   log("\n[3/5] Cloudflare Authentication...");
-  if (authMethod === "token") {
+  if (authMethod === "env") {
+    // Read credentials from existing .env file
+    const envCreds = getEnvFromFile(envPath);
+    if (!envCreds.CLOUDFLARE_API_TOKEN) {
+      log(`  ✗ No CLOUDFLARE_API_TOKEN found in ${envPath}`);
+      log("    Create the file with:");
+      log("      CLOUDFLARE_API_TOKEN=<your-token>");
+      log("      CLOUDFLARE_ACCOUNT_ID=<your-account-id>");
+      process.exit(1);
+    }
+    log("  ✓ Credentials loaded from .env");
+    try {
+      runWithEnv("npx wrangler whoami", envCreds, { cwd: workspacePath });
+      log("  ✓ Token verified successfully");
+    } catch {
+      if (!envCreds.CLOUDFLARE_ACCOUNT_ID) {
+        log("  ⚠ wrangler whoami failed. Token may lack Account Settings:Read.");
+        log("    Add CLOUDFLARE_ACCOUNT_ID to your .env file.");
+        process.exit(1);
+      }
+      log("  ⚠ wrangler whoami returned an error (common for scoped tokens).");
+      log("    Credentials saved — Pages deploy commands should still work.");
+    }
+    // Ensure ACCOUNT_ID is in .env (may have been auto-detected)
+    if (!envCreds.CLOUDFLARE_ACCOUNT_ID) {
+      try {
+        const whoami = runWithEnv("npx wrangler whoami", envCreds, { cwd: workspacePath });
+        const match = whoami.match(/Account ID:\s*(\S+)/);
+        if (match?.[1]) {
+          upsertEnvLine(envPath, "CLOUDFLARE_ACCOUNT_ID", match[1]);
+          log(`  ✓ Account ID auto-detected: ${match[1]}`);
+        }
+      } catch { /* already warned above */ }
+    }
+  } else if (authMethod === "token") {
     // API Token + Account ID (non-interactive)
     upsertEnvLine(envPath, "CLOUDFLARE_API_TOKEN", token);
     upsertEnvLine(envPath, "CLOUDFLARE_ACCOUNT_ID", accountId);
