@@ -1,5 +1,7 @@
 # CF Pages Publisher — 用户指南
 
+> 面向人类用户的文档。如果你是 AI 助手，请阅读 [README.md](README.md)。
+
 将 Markdown/HTML 内容一键发布为 Cloudflare Pages 静态网页，自动生成永久链接。
 
 ## 功能特性
@@ -16,40 +18,51 @@
 
 ## 快速开始
 
-### 1. 告诉 AI 助手安装这个 Skill
+### 第一步：获取 Cloudflare 凭据
 
-直接在 Claude Code 终端中输入：
+在安装之前，你需要先从 Cloudflare 获取以下信息：
+
+**1. 创建 API Token**
+
+前往 https://dash.cloudflare.com/profile/api-tokens 点击 "Create Token"：
+- 选择 "Custom token" 或使用模板
+- 权限设置：**Account** → **Cloudflare Pages** → **Edit**
+- （可选）添加 **Account Settings** → **Read** — 这样可以自动检测 Account ID，无需手动提供
+- 创建后复制生成的 Token（只会显示一次）
+
+**2. 获取 Account ID**
+
+在 Cloudflare Dashboard 中选择你的域名，右侧栏 "API" 区域可以看到 Account ID。
+
+### 第二步：安装
+
+**方式 A：让 AI 助手安装（推荐）**
+
+在 Claude Code 终端中输入：
 
 ```
 https://github.com/zzturn/cf-pages-publisher 请帮我安装这个 skill
 ```
 
-AI 会自动完成下载、安装和配置。
+AI 会引导你提供 Project name、API Token 和 Account ID，自动完成全部配置。
 
-### 2. 提供认证信息
+**方式 B：提前准备好 .env 文件，再让 AI 安装**
 
-AI 会向你询问以下信息：
-
-**你需要准备：**
-- **Cloudflare API Token** — 在 [Cloudflare API Tokens](https://dash.cloudflare.com/profile/api-tokens) 创建，需要 "Cloudflare Pages:Edit" 权限
-- **Cloudflare Account ID** — 在 Cloudflare Dashboard 中选择你的域名，右侧栏可见
-
-**两种提供方式：**
-
-**方式 A（推荐）：提前创建 .env 文件**
-
-在 `~/.cf-pages-publisher/.env` 中写入：
+创建 `~/.cf-pages-publisher/.env` 文件：
 ```
-CLOUDFLARE_API_TOKEN=你的API令牌
-CLOUDFLARE_ACCOUNT_ID=你的账户ID
+CLOUDFLARE_API_TOKEN=你刚才创建的Token
+CLOUDFLARE_ACCOUNT_ID=你的AccountID
 ```
-Account ID 可选 — 如果你的 Token 有 "Account Settings:Read" 权限，会自动检测。
+然后告诉 AI 安装即可 — 它会自动从 .env 读取凭据，无需在对话中传递敏感信息。
 
-**方式 B：在对话中直接告诉 AI**
+**方式 C：手动安装**
 
-AI 会引导你提供 Project name、API Token 和 Account ID。
+```bash
+git clone https://github.com/zzturn/cf-pages-publisher.git ~/.claude/skills/cf-pages-publisher
+node ~/.claude/skills/cf-pages-publisher/setup.mjs --project <name> --auth env
+```
 
-### 3. 开始使用
+### 第三步：开始使用
 
 安装完成后，用自然语言发布内容：
 
@@ -77,8 +90,8 @@ AI 会引导你提供 Project name、API Token 和 Account ID。
 cf-pages-publisher/
 ├── SKILL.md                       # Skill 指令文件（AI agent 读取）
 ├── README.md                      # 安装指南（AI agent 读取）
-├── USER_GUIDE.md                  # 本文件 — 用户指南
-├── setup.mjs                      # 配置脚本（支持非交互模式）
+├── README_USER.md                 # 本文件 — 用户指南
+├── setup.mjs                      # 配置脚本
 ├── agents/openai.yaml             # Codex agent 配置
 ├── references/troubleshooting.md  # 故障排除
 └── templates/                     # 工作空间模板

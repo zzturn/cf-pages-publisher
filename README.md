@@ -1,6 +1,7 @@
 # CF Pages Publisher — AI Agent Installation Guide
 
 > This document is an installation guide for AI agents. When a user asks to install this skill, follow the steps below.
+> For the human-facing guide, see [README_USER.md](README_USER.md).
 
 ## What This Skill Does
 
@@ -47,8 +48,10 @@ CLOUDFLARE_ACCOUNT_ID=<account-id>
 Account ID is optional — auto-detected if token has Account Settings:Read permission.
 
 **Method B — credentials in conversation:**
-- Ask for Cloudflare API Token (from https://dash.cloudflare.com/profile/api-tokens, needs "Pages:Edit")
-- Ask for Account ID (required if token lacks "Account Settings:Read"). Found at: Cloudflare Dashboard → select domain → right sidebar.
+Guide the user to create a token at https://dash.cloudflare.com/profile/api-tokens:
+- Permission needed: **Account** → **Cloudflare Pages** → **Edit**
+- Optional: **Account Settings** → **Read** (enables auto-detection of Account ID)
+- Also ask for **Account ID** (required if token lacks Account Settings:Read). Found at: Cloudflare Dashboard → select domain → right sidebar.
 
 ## Step 5: Run Setup
 
