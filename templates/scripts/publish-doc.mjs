@@ -11,6 +11,7 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
 import { marked } from "marked";
+import hljs from "highlight.js";
 
 function usage(exitCode = 1) {
   const msg = `
@@ -226,6 +227,34 @@ body {
 .markdown-body table { border-collapse: collapse; width: 100%; overflow: auto; display: block; }
 .markdown-body th { background: var(--brand-subtle); font-weight: 600; }
 .markdown-body th, .markdown-body td { border: 1px solid var(--border); padding: 8px 10px; }
+
+/* Syntax highlighting — warm amber theme */
+.hljs-comment, .hljs-quote { color: #9a8878; font-style: italic; }
+.hljs-keyword, .hljs-selector-tag, .hljs-section { color: #b85c2a; }
+.hljs-string, .hljs-addition, .hljs-regexp { color: #5a8a5e; }
+.hljs-number, .hljs-literal { color: #c4703a; }
+.hljs-title, .hljs-title\.class_ { color: #7a5a38; }
+.hljs-title\.function_ { color: #5e7a52; }
+.hljs-built_in, .hljs-type { color: #a05a3a; }
+.hljs-attr, .hljs-variable, .hljs-params { color: #6a5a4a; }
+.hljs-meta, .hljs-meta .hljs-keyword { color: #9a8878; }
+.hljs-deletion { color: #a05040; }
+.hljs-symbol, .hljs-bullet { color: #8a6a4a; }
+.hljs-emphasis { font-style: italic; }
+.hljs-strong { font-weight: 700; }
+@media (prefers-color-scheme: dark) {
+  .hljs-comment, .hljs-quote { color: #7a6a5a; }
+  .hljs-keyword, .hljs-selector-tag, .hljs-section { color: #d4943c; }
+  .hljs-string, .hljs-addition, .hljs-regexp { color: #7aaa7e; }
+  .hljs-number, .hljs-literal { color: #e0a060; }
+  .hljs-title, .hljs-title\.class_ { color: #c0a078; }
+  .hljs-title\.function_ { color: #8aaa7e; }
+  .hljs-built_in, .hljs-type { color: #d48a4c; }
+  .hljs-attr, .hljs-variable, .hljs-params { color: #b0947a; }
+  .hljs-meta, .hljs-meta .hljs-keyword { color: #7a6a5a; }
+  .hljs-deletion { color: #c07060; }
+  .hljs-symbol, .hljs-bullet { color: #b0906a; }
+}
 `.trimStart();
 }
 
@@ -276,6 +305,20 @@ async function main() {
   } else if (ext === ".md" || ext === ".markdown") {
     const renderer = new marked.Renderer();
     if (!args.allowHtml) renderer.html = (html) => escapeHtml(html);
+    renderer.code = function (code, lang) {
+      let highlighted;
+      if (lang && hljs.getLanguage(lang)) {
+        try {
+          highlighted = hljs.highlight(code, { language: lang }).value;
+        } catch {
+          highlighted = escapeHtml(code);
+        }
+      } else {
+        highlighted = escapeHtml(code);
+      }
+      const langClass = lang ? ` language-${lang}` : "";
+      return `<pre><code class="hljs${langClass}">${highlighted}</code></pre>`;
+    };
 
     const title = inferTitle({ inputPath, markdownText: raw });
     marked.setOptions({ gfm: true, mangle: false, headerIds: true, renderer });

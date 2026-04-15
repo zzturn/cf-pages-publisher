@@ -17,6 +17,7 @@ import {
   existsSync,
   mkdirSync,
   cpSync,
+  copyFileSync,
   writeFileSync,
   readFileSync,
 } from "node:fs";
@@ -133,191 +134,28 @@ function isNonInteractive(args) {
   return false;
 }
 
-// ── Welcome Page Generator ───────────────────────────────
-function generateWelcomePage({ projectName, baseUrl }) {
-  const now = new Date().toISOString().replace("T", " ").slice(0, 19);
-  return `<!doctype html>
-<html lang="zh-CN">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>CF Pages Publisher — 已就绪</title>
-    <style>
-      :root {
-        color-scheme: light dark;
-        --page-w: 720px;
-        /* Warm amber brand — every neutral carries a trace of hue */
-        --brand: #c4703a;
-        --brand-subtle: rgba(196,112,58,0.10);
-        --bg-base: #f7f3ee;
-        --surface: rgba(252,248,242,0.68);
-        --surface-2: #f0ebe4;
-        --border: rgba(210,195,175,0.55);
-        --border-strong: rgba(190,170,145,0.72);
-        --text-primary: #1a1410;
-        --text-secondary: #4a3e34;
-        --text-muted: #9a8878;
-        --shadow-sm: 0 1px 3px rgba(140,80,30,0.07), 0 0 0 1px rgba(140,80,30,0.03);
-        --shadow-md: 0 4px 20px rgba(140,80,30,0.09), 0 1px 4px rgba(140,80,30,0.05);
-        --shadow-lg: 0 8px 40px rgba(140,80,30,0.12), 0 2px 8px rgba(140,80,30,0.06);
-        --code-bg: rgba(248,240,230,0.75);
-        --code-border: rgba(215,200,180,0.52);
-        --brand-glow-amber: rgba(200,130,60,0.11);
-        --brand-glow-teal: rgba(40,140,100,0.07);
-        --badge-bg: rgba(196,112,58,0.10);
-        --badge-text: #c4703a;
-        --badge-border: rgba(196,112,58,0.20);
-      }
-      * { box-sizing: border-box; }
-      html, body { min-height: 100vh; }
-      body {
-        margin: 0;
-        font: 16px/1.7 ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
-        background:
-          radial-gradient(1200px 800px at 15% -10%, var(--brand-glow-amber), transparent 65%),
-          radial-gradient(1000px 600px at 88% -5%, var(--brand-glow-teal), transparent 60%),
-          linear-gradient(180deg, var(--bg-base) 0%, #ede8e1 100%);
-        color: var(--text-primary);
-      }
-      @media (prefers-color-scheme: dark) {
-        :root {
-          --brand: #d48a4c;
-          --brand-subtle: rgba(212,138,76,0.15);
-          --bg-base: #13110e;
-          --surface: rgba(28,24,20,0.74);
-          --surface-2: rgba(22,19,15,0.80);
-          --border: rgba(80,65,50,0.28);
-          --border-strong: rgba(105,85,62,0.40);
-          --text-primary: #ede8e1;
-          --text-secondary: #b0a494;
-          --text-muted: #6b5d4d;
-          --shadow-sm: 0 0 0 1px rgba(180,130,70,0.09);
-          --shadow-md: 0 4px 24px rgba(0,0,0,0.36), 0 0 0 1px rgba(180,130,70,0.06);
-          --shadow-lg: 0 12px 48px rgba(0,0,0,0.44), 0 2px 8px rgba(0,0,0,0.20);
-          --code-bg: rgba(30,26,22,0.66);
-          --code-border: rgba(65,55,42,0.32);
-          --brand-glow-amber: rgba(200,130,60,0.13);
-          --brand-glow-teal: rgba(40,140,100,0.07);
-          --badge-bg: rgba(212,138,76,0.15);
-          --badge-text: #d48a4c;
-          --badge-border: rgba(212,138,76,0.25);
-        }
-        body {
-          background:
-            radial-gradient(1200px 800px at 15% -10%, var(--brand-glow-amber), transparent 65%),
-            radial-gradient(1000px 600px at 88% -5%, var(--brand-glow-teal), transparent 60%),
-            linear-gradient(180deg, var(--bg-base) 0%, #0d0b09 100%);
-          color: var(--text-primary);
-        }
-      }
-      .page {
-        max-width: var(--page-w);
-        margin: 0 auto;
-        padding: 48px 20px min(12vh, 80px);
-        display: flex;
-        flex-direction: column;
-      }
-      .card {
-        border-radius: 16px;
-        border: 1px solid var(--border);
-        background: var(--surface);
-        box-shadow: var(--shadow-lg);
-        padding: 36px 32px;
-        backdrop-filter: blur(14px) saturate(1.3);
-        position: relative;
-      }
-      .card::before {
-        content: "";
-        position: absolute;
-        inset: 0;
-        border-radius: 16px;
-        pointer-events: none;
-        background: linear-gradient(135deg, rgba(255,255,255,0.28) 0%, transparent 55%);
-      }
-      h1 { font-size: 1.8em; line-height: 1.2; margin: 0 0 0.3em; color: var(--text-primary); position: relative; z-index: 1; }
-      .badge {
-        display: inline-block;
-        padding: 3px 11px;
-        border-radius: 8px;
-        font-size: 0.82em;
-        font-weight: 600;
-        letter-spacing: 0.03em;
-        background: var(--badge-bg);
-        color: var(--badge-text);
-        border: 1px solid var(--badge-border);
-        vertical-align: middle;
-        margin-left: 8px;
-        position: relative;
-        z-index: 1;
-      }
-      .meta { color: var(--text-muted); font-size: 0.88em; margin: 0.3em 0 1.2em; position: relative; z-index: 1; }
-      h2 { font-size: 1.25em; margin: 1.4em 0 0.5em; line-height: 1.3; color: var(--text-primary); position: relative; z-index: 1; }
-      p { margin: 0.6em 0; color: var(--text-secondary); position: relative; z-index: 1; }
-      ul, ol { padding-left: 1.2em; margin: 0.5em 0; position: relative; z-index: 1; }
-      li { margin: 0.3em 0; color: var(--text-secondary); }
-      code {
-        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-        font-size: 0.92em;
-        padding: 0.12em 0.32em;
-        border-radius: 6px;
-        background: var(--brand-subtle);
-        border: 1px solid var(--code-border);
-        color: var(--brand);
-      }
-      pre {
-        overflow-x: auto;
-        padding: 14px;
-        border-radius: 12px;
-        background: var(--surface-2);
-        border: 1px solid var(--code-border);
-        font-size: 0.9em;
-        line-height: 1.5;
-        position: relative;
-        z-index: 1;
-      }
-      pre code { background: transparent; border: 0; padding: 0; }
-      hr { border: 0; border-top: 1px solid var(--border); margin: 1.4em 0; position: relative; z-index: 1; }
-      a { color: var(--text-secondary); text-decoration: underline; text-underline-offset: 3px; transition: color 0.15s ease; }
-      a:hover { color: var(--brand); }
-      @media (max-width: 520px) {
-        .page { padding: 32px 14px min(8vh, 56px); }
-        .card { padding: 24px 20px; border-radius: 12px; }
-      }
-    </style>
-  </head>
-  <body>
-    <div class="page">
-      <div class="card">
-        <h1>CF Pages Publisher <span class="badge">已就绪</span></h1>
-        <p class="meta">项目：${projectName} · 配置时间：${now}</p>
-
-        <p>此页面确认你的 Cloudflare Pages 发布服务已配置完成。
-        你发布的每篇文档都会获得一个唯一的永久链接，格式为：</p>
-        <pre><code>${baseUrl}/&lt;内容哈希&gt;/</code></pre>
-
-        <h2>如何发布文档</h2>
-        <p>直接向 AI 助手发送指令即可，示例：</p>
-        <ul>
-          <li><code>"将以下内容发布为页面：..."</code></li>
-          <li><code>"部署这份文档：..."</code></li>
-          <li><code>"将这个 Markdown 文件发布为网页：./doc.md"</code></li>
-        </ul>
-
-        <h2>发布流程</h2>
-        <ol>
-          <li>你的内容被转换为带样式的 HTML 页面。</li>
-          <li>根据内容计算哈希值（例如 <code>a1b2c3d4e5f6</code>）。</li>
-          <li>页面保存为 <code>public/&lt;哈希&gt;/index.html</code>。</li>
-          <li>整个 <code>public/</code> 目录通过 Wrangler Direct Upload 部署。</li>
-          <li>你获得永久链接 URL。</li>
-        </ol>
-
-        <hr />
-        <p>历史页面不会被删除 —— 新发布后，旧链接依然可以正常访问。</p>
-      </div>
-    </div>
-  </body>
-</html>`;
+// ── Welcome Page Builder ──────────────────────────────────
+function buildWelcomePage({ workspacePath, baseUrl }) {
+  const publicDir = resolve(workspacePath, "public");
+  mkdirSync(publicDir, { recursive: true });
+  const welcomeMdPath = resolve(TEMPLATES, "welcome.md");
+  if (!existsSync(welcomeMdPath)) return;
+  writeFileSync(
+    resolve(workspacePath, "welcome.md"),
+    readFileSync(welcomeMdPath, "utf8"),
+    "utf8",
+  );
+  const pubOutput = run(
+    `node scripts/publish-doc.mjs welcome.md --base ${baseUrl} --allow-html`,
+    { cwd: workspacePath },
+  );
+  const hashMatch = pubOutput.match(/\/([a-f0-9]+)\/index\.html$/m);
+  if (hashMatch?.[1]) {
+    copyFileSync(
+      resolve(publicDir, hashMatch[1], "index.html"),
+      resolve(publicDir, "index.html"),
+    );
+  }
 }
 
 // ── Core Setup (shared by both modes) ────────────────────
@@ -444,10 +282,7 @@ function doSetup({ projectName, workspacePath, authMethod, token, accountId }) {
   log(`  ✓ config.json saved to ${configPath}`);
 
   try {
-    const welcomeHtml = generateWelcomePage({ projectName, baseUrl });
-    const publicDir = resolve(workspacePath, "public");
-    mkdirSync(publicDir, { recursive: true });
-    writeFileSync(resolve(publicDir, "index.html"), welcomeHtml, "utf8");
+    buildWelcomePage({ workspacePath, baseUrl });
     log("  ✓ Welcome page generated");
 
     const deployEnv = getEnvFromFile(resolve(workspacePath, ".env"));
@@ -589,10 +424,7 @@ async function interactiveMain() {
     writeFileSync(configPath, JSON.stringify({ projectName, baseUrl, workspacePath }, null, 2), "utf8");
     log(`  ✓ config.json saved to ${configPath}`);
     try {
-      const welcomeHtml = generateWelcomePage({ projectName, baseUrl });
-      const publicDir = resolve(workspacePath, "public");
-      mkdirSync(publicDir, { recursive: true });
-      writeFileSync(resolve(publicDir, "index.html"), welcomeHtml, "utf8");
+      buildWelcomePage({ workspacePath, baseUrl });
       log("  ✓ Welcome page generated");
       const deployEnv = getEnvFromFile(resolve(workspacePath, ".env"));
       runWithEnv(
