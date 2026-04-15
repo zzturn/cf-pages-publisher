@@ -93,21 +93,25 @@ function markdownCss() {
 :root {
   color-scheme: light dark;
   --page-w: 920px;
-  /* Cool-blue brand temperature — every neutral carries a trace of hue */
-  --bg-base: #f6f8fc;
-  --surface: #fefefe;
-  --surface-alpha: rgba(240,245,255,0.65);
-  --border: rgba(200,215,240,0.55);
-  --border-strong: rgba(180,200,235,0.70);
-  --text-primary: #0f1520;
-  --text-secondary: #3a4560;
-  --text-muted: #7a8ba0;
-  --shadow-sm: 0 1px 3px rgba(30,50,100,0.06), 0 0 0 1px rgba(30,50,100,0.03);
-  --shadow-md: 0 4px 20px rgba(30,50,100,0.08), 0 1px 4px rgba(30,50,100,0.04);
-  --code-bg: rgba(235,242,255,0.70);
-  --code-border: rgba(200,220,250,0.50);
-  --brand-glow-blue: rgba(60,90,255,0.10);
-  --brand-glow-green: rgba(0,170,90,0.08);
+  /* Warm amber brand — every neutral carries a trace of hue */
+  --brand: #c4703a;
+  --brand-subtle: rgba(196,112,58,0.10);
+  --bg-base: #f7f3ee;
+  --surface: #fdfaf7;
+  --surface-alpha: rgba(252,248,242,0.68);
+  --surface-2: #f0ebe4;
+  --border: rgba(210,195,175,0.55);
+  --border-strong: rgba(190,170,145,0.72);
+  --text-primary: #1a1410;
+  --text-secondary: #4a3e34;
+  --text-muted: #9a8878;
+  --shadow-sm: 0 1px 3px rgba(140,80,30,0.07), 0 0 0 1px rgba(140,80,30,0.03);
+  --shadow-md: 0 4px 20px rgba(140,80,30,0.09), 0 1px 4px rgba(140,80,30,0.05);
+  --shadow-lg: 0 8px 40px rgba(140,80,30,0.12), 0 2px 8px rgba(140,80,30,0.06);
+  --code-bg: rgba(248,240,230,0.75);
+  --code-border: rgba(215,200,180,0.52);
+  --brand-glow-amber: rgba(200,130,60,0.11);
+  --brand-glow-teal: rgba(40,140,100,0.07);
 }
 
 html, body { min-height: 100vh; }
@@ -115,34 +119,38 @@ body {
   margin: 0;
   font: 16px/1.7 ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
   background:
-    radial-gradient(1200px 800px at 20% -10%, var(--brand-glow-blue), transparent 65%),
-    radial-gradient(1000px 600px at 85% -5%, var(--brand-glow-green), transparent 60%),
-    linear-gradient(180deg, var(--bg-base) 0%, #f0f3f9 100%);
+    radial-gradient(1200px 800px at 15% -10%, var(--brand-glow-amber), transparent 65%),
+    radial-gradient(1000px 600px at 88% -5%, var(--brand-glow-teal), transparent 60%),
+    linear-gradient(180deg, var(--bg-base) 0%, #ede8e1 100%);
   color: var(--text-primary);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg-base: #0e111a;
-    --surface: rgba(20,26,40,0.72);
-    --surface-alpha: rgba(18,24,38,0.65);
-    --border: rgba(60,80,120,0.28);
-    --border-strong: rgba(80,105,150,0.38);
-    --text-primary: #e8ecf5;
-    --text-secondary: #98a4bc;
-    --text-muted: #5a6a85;
-    --shadow-sm: 0 0 0 1px rgba(80,120,220,0.08);
-    --shadow-md: 0 4px 24px rgba(0,0,0,0.35), 0 0 0 1px rgba(80,120,220,0.06);
-    --code-bg: rgba(20,28,45,0.65);
-    --code-border: rgba(50,70,110,0.30);
-    --brand-glow-blue: rgba(80,100,220,0.12);
-    --brand-glow-green: rgba(40,160,100,0.08);
+    --brand: #d48a4c;
+    --brand-subtle: rgba(212,138,76,0.15);
+    --bg-base: #13110e;
+    --surface: rgba(28,24,20,0.74);
+    --surface-alpha: rgba(24,21,17,0.68);
+    --surface-2: rgba(22,19,15,0.80);
+    --border: rgba(80,65,50,0.28);
+    --border-strong: rgba(105,85,62,0.40);
+    --text-primary: #ede8e1;
+    --text-secondary: #b0a494;
+    --text-muted: #6b5d4d;
+    --shadow-sm: 0 0 0 1px rgba(180,130,70,0.09);
+    --shadow-md: 0 4px 24px rgba(0,0,0,0.36), 0 0 0 1px rgba(180,130,70,0.06);
+    --shadow-lg: 0 12px 48px rgba(0,0,0,0.44), 0 2px 8px rgba(0,0,0,0.20);
+    --code-bg: rgba(30,26,22,0.66);
+    --code-border: rgba(65,55,42,0.32);
+    --brand-glow-amber: rgba(200,130,60,0.13);
+    --brand-glow-teal: rgba(40,140,100,0.07);
   }
   body {
     background:
-      radial-gradient(1200px 800px at 20% -10%, var(--brand-glow-blue), transparent 65%),
-      radial-gradient(1000px 600px at 85% -5%, var(--brand-glow-green), transparent 60%),
-      linear-gradient(180deg, var(--bg-base) 0%, #0a0d14 100%);
+      radial-gradient(1200px 800px at 15% -10%, var(--brand-glow-amber), transparent 65%),
+      radial-gradient(1000px 600px at 88% -5%, var(--brand-glow-teal), transparent 60%),
+      linear-gradient(180deg, var(--bg-base) 0%, #0d0b09 100%);
     color: var(--text-primary);
   }
 }
@@ -159,9 +167,9 @@ body {
   border-radius: 16px;
   border: 1px solid var(--border);
   background: var(--surface-alpha);
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--shadow-lg);
   padding: 32px 28px;
-  backdrop-filter: blur(12px) saturate(1.2);
+  backdrop-filter: blur(14px) saturate(1.3);
   position: relative;
 }
 .shell::before {
@@ -186,13 +194,13 @@ body {
 .markdown-body p { margin: 0.75em 0; color: var(--text-secondary); }
 .markdown-body :where(ul,ol) { padding-left: 1.25em; margin: 0.7em 0; }
 .markdown-body li { margin: 0.25em 0; color: var(--text-secondary); }
-.markdown-body a { color: var(--text-secondary); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
-.markdown-body a:hover { color: var(--text-primary); opacity: 1; }
+.markdown-body a { color: var(--text-secondary); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; transition: color 0.15s ease; }
+.markdown-body a:hover { color: var(--brand); }
 .markdown-body hr { border: 0; border-top: 1px solid var(--border); margin: 1.3em 0; }
 .markdown-body blockquote {
   margin: 0.9em 0;
   padding: 0.25em 0 0.25em 14px;
-  border-left: 4px solid var(--border-strong);
+  border-left: 4px solid var(--brand);
   color: var(--text-muted);
 }
 .markdown-body code {
@@ -202,20 +210,21 @@ body {
 .markdown-body :not(pre) > code {
   padding: 0.15em 0.35em;
   border-radius: 8px;
-  background: var(--code-bg);
+  background: var(--brand-subtle);
   border: 1px solid var(--code-border);
-  color: var(--text-primary);
+  color: var(--brand);
 }
 .markdown-body pre {
   overflow: auto;
   padding: 14px;
   border-radius: 12px;
-  background: var(--code-bg);
+  background: var(--surface-2);
   border: 1px solid var(--code-border);
 }
 .markdown-body pre code { background: transparent; border: 0; padding: 0; color: inherit; }
 .markdown-body img { max-width: 100%; height: auto; border-radius: 12px; }
 .markdown-body table { border-collapse: collapse; width: 100%; overflow: auto; display: block; }
+.markdown-body th { background: var(--brand-subtle); font-weight: 600; }
 .markdown-body th, .markdown-body td { border: 1px solid var(--border); padding: 8px 10px; }
 `.trimStart();
 }
