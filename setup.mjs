@@ -143,74 +143,138 @@ function generateWelcomePage({ projectName, baseUrl }) {
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>CF Pages Publisher — 已就绪</title>
     <style>
-      :root { color-scheme: light dark; --page-w: 720px; }
+      :root {
+        color-scheme: light dark;
+        --page-w: 720px;
+        /* Cool-blue brand temperature — every neutral carries a trace of hue */
+        --bg-base: #f6f8fc;
+        --surface: rgba(240,245,255,0.65);
+        --border: rgba(200,215,240,0.55);
+        --border-strong: rgba(180,200,235,0.70);
+        --text-primary: #0f1520;
+        --text-secondary: #3a4560;
+        --text-muted: #7a8ba0;
+        --shadow-sm: 0 1px 3px rgba(30,50,100,0.06), 0 0 0 1px rgba(30,50,100,0.03);
+        --shadow-md: 0 4px 20px rgba(30,50,100,0.08), 0 1px 4px rgba(30,50,100,0.04);
+        --code-bg: rgba(235,242,255,0.70);
+        --code-border: rgba(200,220,250,0.50);
+        --brand-glow-blue: rgba(60,90,255,0.10);
+        --brand-glow-green: rgba(0,170,90,0.08);
+        --badge-bg: rgba(14,140,80,0.11);
+        --badge-text: #0a7a42;
+        --badge-border: rgba(14,140,80,0.22);
+      }
       * { box-sizing: border-box; }
+      html, body { min-height: 100vh; }
       body {
         margin: 0;
         font: 16px/1.7 ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
-        background: radial-gradient(1000px 600px at 20% 0%, rgba(120,120,255,0.12), transparent 50%),
-                    radial-gradient(1000px 600px at 80% 0%, rgba(120,255,180,0.10), transparent 55%),
-                    #0b0c0f;
-        color: #e8e8ea;
+        background:
+          radial-gradient(1200px 800px at 20% -10%, var(--brand-glow-blue), transparent 65%),
+          radial-gradient(1000px 600px at 85% -5%, var(--brand-glow-green), transparent 60%),
+          linear-gradient(180deg, var(--bg-base) 0%, #f0f3f9 100%);
+        color: var(--text-primary);
       }
-      @media (prefers-color-scheme: light) {
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg-base: #0e111a;
+          --surface: rgba(20,26,40,0.72);
+          --border: rgba(60,80,120,0.28);
+          --border-strong: rgba(80,105,150,0.38);
+          --text-primary: #e8ecf5;
+          --text-secondary: #98a4bc;
+          --text-muted: #5a6a85;
+          --shadow-sm: 0 0 0 1px rgba(80,120,220,0.08);
+          --shadow-md: 0 4px 24px rgba(0,0,0,0.35), 0 0 0 1px rgba(80,120,220,0.06);
+          --code-bg: rgba(20,28,45,0.65);
+          --code-border: rgba(50,70,110,0.30);
+          --brand-glow-blue: rgba(80,100,220,0.12);
+          --brand-glow-green: rgba(40,160,100,0.08);
+          --badge-bg: rgba(30,140,80,0.13);
+          --badge-text: #4ade94;
+          --badge-border: rgba(30,140,80,0.25);
+        }
         body {
-          background: radial-gradient(1000px 600px at 20% 0%, rgba(60,90,255,0.10), transparent 55%),
-                      radial-gradient(1000px 600px at 80% 0%, rgba(0,160,80,0.10), transparent 55%),
-                      #ffffff;
-          color: #0b0c0f;
+          background:
+            radial-gradient(1200px 800px at 20% -10%, var(--brand-glow-blue), transparent 65%),
+            radial-gradient(1000px 600px at 85% -5%, var(--brand-glow-green), transparent 60%),
+            linear-gradient(180deg, var(--bg-base) 0%, #0a0d14 100%);
+          color: var(--text-primary);
         }
       }
-      .page { max-width: var(--page-w); margin: 0 auto; padding: 48px 18px 64px; }
+      .page {
+        max-width: var(--page-w);
+        margin: 0 auto;
+        padding: 48px 20px min(12vh, 80px);
+        display: flex;
+        flex-direction: column;
+      }
       .card {
         border-radius: 16px;
-        border: 1px solid rgba(127,127,127,0.18);
-        background: rgba(127,127,127,0.06);
-        padding: 32px 28px;
-        backdrop-filter: blur(6px);
+        border: 1px solid var(--border);
+        background: var(--surface);
+        box-shadow: var(--shadow-md);
+        padding: 36px 32px;
+        backdrop-filter: blur(12px) saturate(1.2);
+        position: relative;
       }
-      h1 { font-size: 1.8em; line-height: 1.2; margin: 0 0 0.3em; }
+      .card::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: 16px;
+        pointer-events: none;
+        background: linear-gradient(135deg, rgba(255,255,255,0.28) 0%, transparent 55%);
+      }
+      h1 { font-size: 1.8em; line-height: 1.2; margin: 0 0 0.3em; color: var(--text-primary); position: relative; z-index: 1; }
       .badge {
         display: inline-block;
-        padding: 2px 10px;
+        padding: 3px 11px;
         border-radius: 8px;
         font-size: 0.82em;
         font-weight: 600;
-        background: rgba(52,211,153,0.15);
-        color: #34d399;
-        border: 1px solid rgba(52,211,153,0.25);
+        letter-spacing: 0.03em;
+        background: var(--badge-bg);
+        color: var(--badge-text);
+        border: 1px solid var(--badge-border);
         vertical-align: middle;
         margin-left: 8px;
+        position: relative;
+        z-index: 1;
       }
-      @media (prefers-color-scheme: light) {
-        .badge { background: rgba(16,150,80,0.12); color: #0a7a42; border-color: rgba(16,150,80,0.25); }
-      }
-      .meta { color: rgba(127,127,127,0.7); font-size: 0.88em; margin: 0.3em 0 1.2em; }
-      h2 { font-size: 1.25em; margin: 1.4em 0 0.5em; line-height: 1.3; }
-      p { margin: 0.6em 0; }
-      ul, ol { padding-left: 1.2em; margin: 0.5em 0; }
-      li { margin: 0.3em 0; }
+      .meta { color: var(--text-muted); font-size: 0.88em; margin: 0.3em 0 1.2em; position: relative; z-index: 1; }
+      h2 { font-size: 1.25em; margin: 1.4em 0 0.5em; line-height: 1.3; color: var(--text-primary); position: relative; z-index: 1; }
+      p { margin: 0.6em 0; color: var(--text-secondary); position: relative; z-index: 1; }
+      ul, ol { padding-left: 1.2em; margin: 0.5em 0; position: relative; z-index: 1; }
+      li { margin: 0.3em 0; color: var(--text-secondary); }
       code {
         font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
         font-size: 0.92em;
         padding: 0.12em 0.32em;
         border-radius: 6px;
-        background: rgba(127,127,127,0.12);
-        border: 1px solid rgba(127,127,127,0.15);
+        background: var(--code-bg);
+        border: 1px solid var(--code-border);
+        color: var(--text-primary);
       }
       pre {
         overflow-x: auto;
         padding: 14px;
         border-radius: 12px;
-        background: rgba(127,127,127,0.08);
-        border: 1px solid rgba(127,127,127,0.14);
+        background: var(--code-bg);
+        border: 1px solid var(--code-border);
         font-size: 0.9em;
         line-height: 1.5;
+        position: relative;
+        z-index: 1;
       }
       pre code { background: transparent; border: 0; padding: 0; }
-      hr { border: 0; border-top: 1px solid rgba(127,127,127,0.22); margin: 1.4em 0; }
-      a { color: inherit; text-decoration: underline; text-underline-offset: 3px; }
-      a:hover { opacity: 0.85; }
+      hr { border: 0; border-top: 1px solid var(--border); margin: 1.4em 0; position: relative; z-index: 1; }
+      a { color: var(--text-secondary); text-decoration: underline; text-underline-offset: 3px; }
+      a:hover { color: var(--text-primary); opacity: 1; }
+      @media (max-width: 520px) {
+        .page { padding: 32px 14px min(8vh, 56px); }
+        .card { padding: 24px 20px; border-radius: 12px; }
+      }
     </style>
   </head>
   <body>
